@@ -59,7 +59,7 @@ async function album(dir, name) {
       warn.push(`아이폰 HEIC 사진은 웹에서 보이지 않아 건너뜀: ${name}/${f} → JPG로 바꿔 올려 주세요`);
     }
   }
-  return { date, title, note, media };
+  return { date, title, note, media, dir: dir.split(path.sep).join("/") };
 }
 
 // 영상: 웹에서 잘 재생되는 MP4(최대 1280px, H.264/AAC)로 줄이고 표지 그림을 만든다. 한 번 줄인 영상은 캐시에 보관.
