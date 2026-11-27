@@ -157,6 +157,37 @@ h2{font-size:32px;line-height:1.1;margin:0}
 .rec{background:#fff;color:#111}
 .rec.on{background:var(--red);color:#fff}
 @media(max-width:760px){.th-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.th-player{aspect-ratio:16/9;flex:none}.mv-stage canvas{left:6px;width:calc(100% - 12px)}}
+/* 운영진 업로드 */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.sheet.on{display:flex}
+.sheet form{background:var(--card);color:var(--ink);border-radius:16px;padding:24px;width:min(560px,100%);max-height:100%;overflow:auto}
+.sheet h2{font-size:26px;margin-bottom:12px}
+.sheet label{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+.sheet input,.sheet textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.sheet textarea{min-height:80px;resize:vertical}
+.sheet input:focus-visible,.sheet textarea:focus-visible{outline:3px solid #ffd23f;outline-offset:1px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:22px 16px;text-align:center;color:var(--mute);cursor:pointer}
+.drop small{font-size:13px}
+.drop.over{border-color:var(--red);color:var(--ink)}
+.pick{display:flex;gap:8px;margin-top:8px}
+.pick button{flex:1}
+.groups{margin-top:12px;display:grid;gap:6px}
+.grp{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:var(--bg);font-size:14px}
+.grp b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp span{color:var(--mute);white-space:nowrap}
+.grp.warn span{color:var(--red2)}
+.hint{font-size:13px;color:var(--mute);margin:6px 0 0}
+.hint a{color:var(--red2);font-weight:700}
+.err{color:var(--red2);font-size:14px;margin:10px 0 0;min-height:1em;white-space:pre-line}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.plain{background:var(--line);color:var(--ink)}
+.upbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:16px}
+.upbar i{display:block;height:100%;width:0;background:var(--red);transition:width .3s}
+.adm{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--mute)}
+.del{background:none;color:var(--mute);font-weight:500;padding:0 8px;min-height:36px}
+.del:hover{color:var(--red2)}
+.foot{padding:24px max(5vw,16px) 40px;text-align:center}
+.foot button{background:none;color:var(--mute);font-weight:500;text-decoration:underline;min-height:36px}
 @media(max-width:600px){.post{padding:16px}.ph{gap:12px}.nav{display:none}.layer .fit{inset:56px 6px 150px}.row:nth-child(3){display:none}}
 @media(prefers-reduced-motion:no-preference){.post{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
 @media(prefers-reduced-motion:reduce){.kb img,.track,.ptitle,.rows.fadein{animation:none!important}.ptitle{display:none}.row{overflow-x:auto}}
@@ -187,11 +218,13 @@ h2{font-size:32px;line-height:1.1;margin:0}
       <button class="dark" id="thBtn" disabled>영상관</button>
       <button class="dark" id="mvBtn" disabled>추억영상 만들기</button>
       <button class="ghost2" id="copyBtn">링크 복사</button>
+      <button class="primary" id="addBtn" hidden>＋ 활동 기록 올리기</button>
     </div>
   </div>
   <p class="status" id="status">불러오는 중…</p>
   <div id="feed"></div>
 </div></main>
+<footer class="foot"><button id="adminBtn">운영진 로그인</button></footer>
 
 <div class="show" id="show" role="dialog" aria-label="슬라이드쇼">
   <div id="stage"></div>
@@ -272,6 +305,51 @@ h2{font-size:32px;line-height:1.1;margin:0}
   <p class="mv-msg" id="mvMsg"></p>
 </div>
 
+<div class="sheet" id="loginSheet">
+  <form id="loginForm">
+    <h2>운영진 로그인</h2>
+    <p class="hint">사진을 올리는 운영진만 필요해요. GitHub에서 만든 <b>업로드 토큰</b>을 붙여 넣으세요. 이 기기에만 저장돼요.</p>
+    <label for="tokIn">업로드 토큰</label>
+    <input id="tokIn" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…" required>
+    <p class="hint"><a id="tokHelp" target="_blank" rel="noopener">토큰 만드는 곳 열기 ↗</a></p>
+    <p class="err" id="loginErr" role="alert"></p>
+    <div class="acts">
+      <button type="button" class="plain" id="loginCancel">취소</button>
+      <button type="submit" class="primary" id="loginOk">로그인</button>
+    </div>
+  </form>
+</div>
+
+<div class="sheet" id="upSheet">
+  <form id="upForm">
+    <h2>활동 기록 올리기</h2>
+    <div class="drop" id="drop" tabindex="0" role="button">사진·영상을 여기로 끌어다 놓으세요<br><small>날짜 폴더(예: 2026-11-02 정기전)째 놓으면 폴더마다 자동으로 나눠요</small></div>
+    <div class="pick">
+      <button type="button" class="plain" id="pickFiles">파일 고르기</button>
+      <button type="button" class="plain" id="pickDir">폴더 고르기</button>
+    </div>
+    <input type="file" id="fFiles" accept="image/*,video/*" multiple hidden>
+    <input type="file" id="fDir" webkitdirectory multiple hidden>
+    <div class="groups" id="groups"></div>
+    <div id="manual">
+      <p class="hint">날짜 폴더 없이 고른 파일은 아래 날짜·활동으로 올라가요.</p>
+      <label for="fDate">날짜</label>
+      <input type="date" id="fDate">
+      <label for="fName">활동 이름</label>
+      <input id="fName" maxlength="60" placeholder="예: 11월 정기전">
+      <label for="fNote">메모 (선택)</label>
+      <textarea id="fNote" maxlength="2000" placeholder="결과, 참석 인원, 유튜브·구글 드라이브 영상 주소 등"></textarea>
+    </div>
+    <div class="upbar" id="upbar" hidden><i id="upProg"></i></div>
+    <p class="hint" id="upStat"></p>
+    <p class="err" id="fErr" role="alert"></p>
+    <div class="acts">
+      <button type="button" class="plain" id="upCancel">닫기</button>
+      <button type="submit" class="primary" id="upOk">올리기</button>
+    </div>
+  </form>
+</div>
+
 <script>
 {
 const $ = id => document.getElementById(id);
@@ -341,7 +419,9 @@ function renderFeed() {
     pt.append(el("h3", null, p.title));
     const nP = p.media.filter(x => x.kind === "image").length, nV = p.media.length - nP;
     pt.append(el("div", "meta", fmtDate(p.date) + " · 사진 " + nP + (nV ? " · 영상 " + nV : "")));
-    ph.append(d, pt); card.append(ph);
+    ph.append(d, pt);
+    if (token && p.dir) { const x = el("button", "del", "삭제"); x.onclick = () => deleteAlbum(p, x); ph.append(x); }
+    card.append(ph);
     if (p.note) card.append(el("p", "note", p.note));
     if (p.media.length) {
       const g = el("div", "grid" + (p.media.length === 1 ? " one" : ""));
@@ -829,13 +909,217 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && mvR
 $("thBtn").onclick = openTheater;
 $("mvBtn").onclick = openMovie;
 
+
+/* ───────── 운영진: 사이트에서 바로 올리기 (GitHub API) ───────── */
+const GH = { owner: location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "", repo: location.pathname.split("/")[1] || "" };
+let token = null;
+try { token = localStorage.getItem("club_token"); } catch (e) {}
+const IMG_RE = /\.(jpe?g|png|webp|avif|bmp)$/i, VID_RE = /\.(mp4|mov|m4v|webm)$/i, HEIC_RE = /\.(heic|heif)$/i;
+const VMAX = 95 * 1024 * 1024;
+const DATE_DIR = /^(\d{4})[-.](\d{1,2})[-.](\d{1,2})[\s_-]*(.*)$/;
+const cleanName = s => s.replace(/[\\/:*?"<>|#%]/g, " ").replace(/\s+/g, " ").trim();
+$("tokHelp").href = "https://github.com/settings/personal-access-tokens/new";
+
+async function api(p, opt = {}) {
+  const r = await fetch("https://api.github.com/repos/" + GH.owner + "/" + GH.repo + p, {
+    ...opt, headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(opt.body ? { "Content-Type": "application/json" } : {}) }
+  });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) { const e = new Error((j && j.message) || ("HTTP " + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+function setAdmin() {
+  const on = !!token;
+  $("addBtn").hidden = !on;
+  $("adminBtn").textContent = on ? "운영진 로그아웃" : "운영진 로그인";
+  renderFeed();
+}
+$("adminBtn").onclick = () => {
+  if (token) { token = null; try { localStorage.removeItem("club_token"); } catch (e) {} setAdmin(); return; }
+  $("loginErr").textContent = ""; $("tokIn").value = ""; $("loginSheet").classList.add("on"); $("tokIn").focus();
+};
+$("loginCancel").onclick = () => $("loginSheet").classList.remove("on");
+$("loginForm").onsubmit = async e => {
+  e.preventDefault();
+  if (!GH.owner || !GH.repo) { $("loginErr").textContent = "GitHub Pages 주소(…github.io/저장소)에서 열어야 올릴 수 있어요."; return; }
+  const t = $("tokIn").value.trim(); if (!t) return;
+  $("loginOk").disabled = true; $("loginErr").textContent = "확인 중…";
+  const prev = token; token = t;
+  try {
+    const j = await api("");
+    if (!(j.permissions && j.permissions.push)) throw Object.assign(new Error("noperm"), { status: 403 });
+    try { localStorage.setItem("club_token", t); } catch (e) {}
+    $("loginSheet").classList.remove("on"); setAdmin();
+  } catch (err) {
+    token = prev;
+    $("loginErr").textContent = err.status === 401 ? "토큰이 올바르지 않거나 만료됐어요." : err.status === 403 || err.status === 404 ? "이 토큰으로는 " + GH.repo + " 저장소에 올릴 수 없어요.\n토큰을 만들 때 이 저장소를 고르고 Contents를 Read and write로 해 주세요." : "확인하지 못했어요: " + err.message;
+  }
+  $("loginOk").disabled = false;
+};
+
+/* 파일 모으기: 끌어다 놓기·파일·폴더 */
+let picked = [];
+function folderOf(rel) {
+  const parts = rel.split("/").slice(0, -1).reverse();
+  for (const p of parts) { const n = p.normalize("NFC"); if (DATE_DIR.test(n)) return n; }
+  return null;
+}
+function addPicked(file, rel) {
+  const name = file.name.normalize("NFC");
+  if (!(IMG_RE.test(name) || VID_RE.test(name) || HEIC_RE.test(name) || /\.gif$/i.test(name) || /^(메모|memo)\.txt$/i.test(name))) return;
+  if (picked.some(p => p.rel === rel && p.file.size === file.size)) return;
+  picked.push({ file, name, rel, folder: folderOf(rel) });
+}
+async function walkEntry(entry, path) {
+  if (entry.isFile) { const f = await new Promise((res, rej) => entry.file(res, rej)); addPicked(f, path + f.name); }
+  else if (entry.isDirectory) {
+    const rd = entry.createReader(); let batch;
+    do { batch = await new Promise((res, rej) => rd.readEntries(res, rej)); for (const c of batch) await walkEntry(c, path + entry.name + "/"); } while (batch.length);
+  }
+}
+function drawGroups() {
+  const box = $("groups"); box.textContent = "";
+  const map = new Map();
+  for (const p of picked) { const k = p.folder || "＊ 아래 날짜·활동으로"; if (!map.has(k)) map.set(k, []); map.get(k).push(p); }
+  for (const [k, list] of map) {
+    const big = list.filter(p => VID_RE.test(p.name) && p.file.size > VMAX).length, heic = list.filter(p => HEIC_RE.test(p.name)).length;
+    const mb = list.reduce((s, p) => s + p.file.size, 0) / 1048576;
+    const g = el("div", "grp" + (big || heic ? " warn" : ""));
+    g.append(el("b", null, k), el("span", null, list.length + "개 · " + mb.toFixed(0) + "MB" + (big ? " · 95MB 넘는 영상 " + big + "개 제외" : "") + (heic ? " · HEIC " + heic + "개 제외" : "")));
+    box.append(g);
+  }
+  $("manual").hidden = picked.length > 0 && picked.every(p => p.folder);
+  $("upStat").textContent = picked.length ? "총 " + picked.length + "개 파일" : "";
+}
+$("addBtn").onclick = () => {
+  if (busy) { $("upSheet").classList.add("on"); return; }
+  picked = []; drawGroups(); $("fErr").textContent = ""; $("upbar").hidden = true; $("upStat").textContent = "";
+  const t = new Date(); $("fDate").value = t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
+  $("upSheet").classList.add("on");
+};
+$("upCancel").onclick = () => $("upSheet").classList.remove("on");
+$("drop").onclick = () => $("fFiles").click();
+$("drop").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fFiles").click(); } };
+$("pickFiles").onclick = () => $("fFiles").click();
+$("pickDir").onclick = () => $("fDir").click();
+$("fFiles").onchange = e => { for (const f of e.target.files) addPicked(f, f.name); e.target.value = ""; drawGroups(); };
+$("fDir").onchange = e => { for (const f of e.target.files) addPicked(f, f.webkitRelativePath || f.name); e.target.value = ""; drawGroups(); };
+$("drop").ondragover = e => { e.preventDefault(); $("drop").classList.add("over"); };
+$("drop").ondragleave = () => $("drop").classList.remove("over");
+$("drop").ondrop = async e => {
+  e.preventDefault(); $("drop").classList.remove("over");
+  const entries = [...e.dataTransfer.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (entries.length) { for (const en of entries) await walkEntry(en, ""); }
+  else for (const f of e.dataTransfer.files) addPicked(f, f.name);
+  drawGroups();
+};
+
+/* 올리기: 사진은 줄여서, 파일마다 따로 보내고 마지막에 한 번에 저장 */
+async function shrink(file) {
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(1, 2560 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+  return await new Promise(res => c.toBlob(res, "image/jpeg", 0.88));
+}
+async function b64(blob) {
+  const u8 = new Uint8Array(await blob.arrayBuffer()); let s = "";
+  for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+async function retry(fn) {
+  for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 2 || (e.status && e.status < 500 && e.status !== 403 && e.status !== 429)) throw e; await new Promise(r => setTimeout(r, 2000 * (i + 1))); } }
+}
+async function commitTree(entries, message) {
+  for (let i = 0; i < 3; i++) {
+    const ref = await api("/git/ref/heads/main"), head = await api("/git/commits/" + ref.object.sha);
+    const tree = await api("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: head.tree.sha, tree: entries }) });
+    const c = await api("/git/commits", { method: "POST", body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] }) });
+    try { await api("/git/refs/heads/main", { method: "PATCH", body: JSON.stringify({ sha: c.sha }) }); return; }
+    catch (e) { if (e.status !== 422 || i === 2) throw e; }
+  }
+}
+let busy = false;
+$("upForm").onsubmit = async e => {
+  e.preventDefault(); if (busy) return;
+  const err = $("fErr"); err.textContent = "";
+  const manual = picked.filter(p => !p.folder);
+  const mdate = $("fDate").value, mtitle = cleanName($("fName").value), mnote = $("fNote").value.trim();
+  if (!picked.length && !mnote) { err.textContent = "올릴 사진·영상을 골라 주세요."; return; }
+  if ((manual.length || !picked.length) && (!mdate || !mtitle)) { err.textContent = "날짜와 활동 이름을 넣어 주세요."; return; }
+  const mfolder = mdate + " " + mtitle;
+  const jobs = picked.filter(p => !(HEIC_RE.test(p.name) || (VID_RE.test(p.name) && p.file.size > VMAX)));
+  const skipped = picked.length - jobs.length;
+  busy = true; $("upOk").disabled = true; $("upbar").hidden = false;
+  const entries = [], fails = [], total = jobs.reduce((s, p) => s + p.file.size, 0) || 1; let done = 0;
+  try {
+    for (let i = 0; i < jobs.length; i++) {
+      const p = jobs[i], folder = p.folder || mfolder;
+      $("upStat").textContent = (i + 1) + " / " + jobs.length + " 올리는 중: " + p.name;
+      try {
+        let blob = p.file, name = p.name;
+        if (IMG_RE.test(name) && p.file.size > 600 * 1024) { try { blob = await shrink(p.file); name = name.replace(/\.[^.]+$/, ".jpg"); } catch (x) { blob = p.file; } }
+        const content = await b64(blob);
+        const r = await retry(() => api("/git/blobs", { method: "POST", body: JSON.stringify({ content, encoding: "base64" }) }));
+        entries.push({ path: "albums/" + folder + "/" + name, mode: "100644", type: "blob", sha: r.sha });
+      } catch (x) { fails.push(p.name + " (" + x.message + ")"); }
+      done += p.file.size; $("upProg").style.width = (done / total * 95) + "%";
+    }
+    if (mnote && (manual.length || !picked.length)) {
+      const r = await api("/git/blobs", { method: "POST", body: JSON.stringify({ content: mnote + "\n", encoding: "utf-8" }) });
+      entries.push({ path: "albums/" + mfolder + "/메모.txt", mode: "100644", type: "blob", sha: r.sha });
+    }
+    if (!entries.length) throw new Error("올라간 파일이 없어요");
+    $("upStat").textContent = "저장하는 중…";
+    const folders = [...new Set(entries.map(x => x.path.split("/")[1]))];
+    await commitTree(entries, "앨범 올리기: " + folders.join(", "));
+    $("upProg").style.width = "100%";
+    picked = []; drawGroups();
+    $("upStat").textContent = "올렸어요! " + entries.length + "개 파일 · 사이트에는 3~10분 뒤에 나타나요(영상이 많으면 더 걸려요).";
+    if (skipped) err.textContent = "HEIC 사진이나 95MB 넘는 영상 " + skipped + "개는 빼고 올렸어요.";
+    if (fails.length) err.textContent += (err.textContent ? "\n" : "") + "못 올린 파일: " + fails.join(", ");
+    watchUpdate();
+  } catch (x) {
+    err.textContent = x.status === 401 ? "로그인이 만료됐어요. 다시 로그인해 주세요." : "올리지 못했어요: " + x.message;
+  }
+  busy = false; $("upOk").disabled = false;
+};
+
+/* 활동 삭제 */
+async function deleteAlbum(p, btn) {
+  if (btn.dataset.arm !== "1") { btn.dataset.arm = "1"; btn.textContent = "정말 삭제?"; setTimeout(() => { btn.dataset.arm = ""; btn.textContent = "삭제"; }, 3500); return; }
+  btn.disabled = true; btn.textContent = "삭제 중…";
+  try {
+    const ref = await api("/git/ref/heads/main"), head = await api("/git/commits/" + ref.object.sha);
+    const t = await api("/git/trees/" + head.tree.sha + "?recursive=1");
+    const del = t.tree.filter(x => x.type === "blob" && x.path.normalize("NFC").startsWith(p.dir.normalize("NFC") + "/")).map(x => ({ path: x.path, mode: x.mode, type: "blob", sha: null }));
+    if (!del.length) throw new Error("파일을 찾지 못했어요");
+    await commitTree(del, "앨범 삭제: " + p.dir.split("/").pop());
+    btn.textContent = "삭제됨 · 몇 분 뒤 사라져요"; watchUpdate();
+  } catch (x) { btn.disabled = false; btn.textContent = "삭제 실패"; }
+}
+
+/* 반영 기다리기: albums.json이 새로 만들어지면 다시 그림 */
+let lastGen = null, watchT = null;
+function watchUpdate() {
+  clearInterval(watchT); let n = 0;
+  watchT = setInterval(async () => {
+    if (++n > 40) return clearInterval(watchT);
+    try { const d = await (await fetch("albums.json?t=" + Date.now(), { cache: "no-store" })).json(); if (d.generated !== lastGen) { clearInterval(watchT); loadData(d); $("upStat").textContent = "사이트에 반영됐어요 ✓"; } } catch (e) {}
+  }, 30000);
+}
+
+addEventListener("keydown", e => { if (e.key === "Escape") { $("loginSheet").classList.remove("on"); $("upSheet").classList.remove("on"); } });
+setAdmin();
+
 /* 데이터 불러오기: albums.json (GitHub가 사진을 올릴 때마다 자동으로 만들어 줌) */
 const hadHash = fromHash();
 go();
-fetch("albums.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw 0; return r.json(); }).then(data => {
+function loadData(data) {
+  lastGen = data.generated;
   musicList = (Array.isArray(data.music) ? data.music : []).filter(m => m && /^music\/[\w.-]+$/.test(m.src)).map(m => ({ name: String(m.name || "음악"), src: m.src }));
   posts = (Array.isArray(data.albums) ? data.albums : []).filter(a => a && /^\d{4}-\d{2}-\d{2}$/.test(a.date)).map((a, i) => ({
-    id: "a" + i, date: a.date, month: a.date.slice(0, 7), title: String(a.title || "활동"), note: String(a.note || ""),
+    id: "a" + i, dir: typeof a.dir === "string" ? a.dir : "", date: a.date, month: a.date.slice(0, 7), title: String(a.title || "활동"), note: String(a.note || ""),
     media: (Array.isArray(a.media) ? a.media : []).filter(m => m && (m.kind === "youtube" ? YT.test(m.yt) : m.kind === "drive" ? GD.test(m.gd) : SRC.test(m.src) && (m.kind === "video" ? (!m.poster || SRC.test(m.poster)) : SRC.test(m.thumb))))
   }));
   if (!hadHash && posts.length && !monthPosts().length) {
@@ -845,7 +1129,8 @@ fetch("albums.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw 0; retu
   const nMedia = posts.reduce((s, p) => s + p.media.length, 0);
   $("status").textContent = posts.length ? "총 " + posts.length + "개 활동 · 사진·영상 " + nMedia + "개 · 사진을 누르면 크게 볼 수 있어요" : "아직 올라온 기록이 없어요.";
   go();
-}).catch(() => { $("status").textContent = "기록을 불러오지 못했어요. 잠시 후 새로고침해 주세요."; });
+}
+fetch("albums.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw 0; return r.json(); }).then(loadData).catch(() => { $("status").textContent = "기록을 불러오지 못했어요. 잠시 후 새로고침해 주세요."; });
 }
 </script>
 </body>
