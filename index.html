@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__CLUB_NAME__ 앨범</title>
+<meta name="description" content="__CLUB_SUB__">
+<meta property="og:title" content="__CLUB_NAME__ 앨범">
+<meta property="og:description" content="__CLUB_SUB__">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 활기찬 팀 라커룸 — 짧고 힘 있는 말
+   IDEA: 시즌 기록판. 12개월이 등번호처럼 걸린 유니폼 스트립
+   PICTURE: 선택한 달의 활동 카드와 큰 사진 그리드 자체가 그림
+   COLOUR and TYPE: 유니폼 레드 #e8361e, 흰색, 잉크 블랙 / 밤 #141414. Black Han Sans + Noto Sans KR
+   LAYOUT: 상단 레드 밴드(팀명+월 스트립), 아래 활동 피드 한 컬럼 */
+:root{color-scheme:light dark;--bg:light-dark(#f6f5f2,#141414);--card:light-dark(#fff,#1e1e1e);--ink:light-dark(#151515,#f2f2f2);--mute:light-dark(#666,#a6a6a6);--line:light-dark(#e2dfd8,#2e2e2e);--red:#e8361e;--red2:light-dark(#c42a15,#ff5a40)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+h1,h2,.num{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;letter-spacing:0}
+.top{background:var(--red);color:#fff;padding:clamp(24px,4vw,48px) max(5vw,16px) 0}
+.wrap{max-width:1240px;margin:0 auto}
+.head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+h1{font-size:clamp(32px,6vw,52px);line-height:1.05;margin:0;text-wrap:balance}
+.sub{margin:6px 0 0;opacity:.9}
+.yr{display:flex;align-items:center;gap:6px}
+.yr b{font-family:"Black Han Sans";font-size:26px;font-weight:400;min-width:4ch;text-align:center}
+button,.btn{font:inherit;font-weight:700;border:0;border-radius:10px;min-height:44px;padding:0 16px;cursor:pointer}
+button:focus-visible,.m:focus-visible{outline:3px solid #ffd23f;outline-offset:2px}
+.ghost{background:rgba(255,255,255,.16);color:#fff}
+.icon{width:44px;padding:0}
+.months{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:24px 0 0;scrollbar-width:none}
+.m{flex:none;scroll-snap-align:start;width:86px;padding:10px 8px 12px;border-radius:12px 12px 0 0;background:rgba(0,0,0,.16);color:#fff;text-align:center;cursor:pointer;border:0;font:inherit}
+.m .num{display:block;font-size:30px;line-height:1}
+.m small{display:block;font-size:13px;opacity:.85;margin-top:4px}
+.m[aria-current=true]{background:var(--bg);color:var(--ink)}
+.m[aria-current=true] small{color:var(--red2);opacity:1;font-weight:700}
+.m.has:not([aria-current=true]) small{font-weight:700}
+main{padding:clamp(24px,4vw,48px) max(5vw,16px) 64px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:20px}
+h2{font-size:32px;line-height:1.1;margin:0}
+.primary{background:var(--red);color:#fff}
+.primary:hover{background:var(--red2)}
+.post{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+.ph{display:flex;gap:16px;align-items:flex-start}
+.date{flex:none;width:56px;text-align:center;border:2px solid var(--ink);border-radius:10px;padding:4px 0}
+.date .num{display:block;font-size:26px;line-height:1.1}
+.date small{font-size:13px;color:var(--mute)}
+.pt{flex:1}
+.pt h3{margin:0;font-size:20px;line-height:1.3}
+.meta{font-size:13px;color:var(--mute);margin-top:2px}
+.note{margin:12px 0 0;white-space:pre-wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:16px}
+.grid.one{grid-template-columns:minmax(0,1fr)}
+.tile{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--line);border:0;padding:0;cursor:zoom-in}
+.grid.one .tile{aspect-ratio:16/9}
+.tile img,.tile video{width:100%;height:100%;object-fit:cover;display:block}
+.play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.play i{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center}
+.play i::after{content:"";border-left:16px solid #fff;border-block:10px solid transparent;margin-left:4px}
+.empty{text-align:center;padding:56px 16px;border:2px dashed var(--line);border-radius:16px;color:var(--mute)}
+.empty b{display:block;font-size:20px;color:var(--ink);margin-bottom:6px}
+.status{font-size:14px;color:var(--mute);margin:0 0 16px}
+.views{display:flex;flex-wrap:wrap;gap:8px}
+.dark{background:var(--ink);color:var(--bg)}
+.ghost2{background:none;color:var(--ink);border:1px solid var(--line)}
+.yt{position:relative;width:min(960px,100%);aspect-ratio:16/9}
+.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:6px}
+.dark:disabled{opacity:.35;cursor:default}
+/* 슬라이드쇼 */
+.show,.pano{position:fixed;inset:0;z-index:20;display:none;background:#0b0b0b;color:#fff;overflow:hidden;touch-action:pan-y}
+.show.on,.pano.on{display:block}
+.show{z-index:21}
+.layer{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
+.layer.in{opacity:1}
+.layer .blur{position:absolute;inset:-40px;background-size:cover;background-position:center;filter:blur(36px) brightness(.45);transform:scale(1.1)}
+.layer .fit{position:absolute;inset:64px 16px 150px;display:grid;place-items:center}
+.layer img,.layer video{max-width:100%;max-height:calc(100vh - 214px);max-height:calc(100dvh - 214px);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.kb img{animation:kb var(--d,6s) ease-out both}
+@keyframes kb{from{transform:scale(var(--s0)) translate(var(--x0),var(--y0))}to{transform:scale(var(--s1)) translate(var(--x1),var(--y1))}}
+.sbar{position:absolute;inset:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(#000a,#0000)}
+.sbar .grow{flex:1}
+.cnt{font-size:14px;opacity:.8;white-space:nowrap}
+.scap{position:absolute;left:0;right:0;bottom:96px;text-align:center;padding:0 16px;text-shadow:0 2px 10px #000}
+.scap b{display:block;font-family:"Black Han Sans";font-weight:400;font-size:clamp(22px,4vw,34px);line-height:1.15}
+.scap span{font-size:14px;opacity:.85}
+.scap.pop{animation:cap .8s ease both}
+@keyframes cap{from{opacity:0;transform:translateY(12px)}}
+.prog{position:absolute;left:0;right:0;bottom:84px;height:3px;background:#fff2}
+.prog i{display:block;height:100%;width:0;background:var(--red)}
+.strip{position:absolute;left:0;right:0;bottom:0;height:84px;display:flex;gap:6px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;background:#000a}
+.strip button{flex:none;height:64px;width:86px;padding:0;border-radius:6px;overflow:hidden;opacity:.45;background:#222;border:2px solid transparent}
+.strip button.cur{opacity:1;border-color:var(--red)}
+.strip img,.strip video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;font-size:26px}
+.nav.l{left:10px}.nav.r{right:10px}
+/* 파노라마(주마등) */
+.pano{background:radial-gradient(ellipse at 50% 40%,#3a1712 0%,#120808 55%,#050303 100%)}
+.rows{position:absolute;inset:70px 0 60px;display:flex;flex-direction:column;justify-content:center;gap:14px;perspective:1100px}
+.row{flex:1;max-height:42vh;overflow:hidden;transform-style:preserve-3d}
+.row:nth-child(1){transform:rotateX(9deg)}.row:nth-child(3){transform:rotateX(-9deg)}
+.track{display:flex;gap:14px;height:100%;width:max-content;animation:flow var(--dur) linear infinite;will-change:transform}
+.row.rev .track{animation-direction:reverse}
+.row:hover .track,.pano.paused .track{animation-play-state:paused}
+@keyframes flow{to{transform:translateX(-50%)}}
+.card{position:relative;height:100%;flex:none;border:0;padding:0;border-radius:10px;overflow:hidden;background:#222;cursor:pointer;box-shadow:0 12px 30px #0009;transition:transform .3s}
+.card:hover{transform:scale(1.04);z-index:2}
+.card img,.card video{height:100%;width:auto;min-width:120px;max-width:70vw;object-fit:cover;display:block}
+.card span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(#0000,#000c);color:#fff;font-size:13px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vign{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#050303 0,#0000 12%,#0000 88%,#050303 100%)}
+.ptitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:3;animation:intro 3.2s ease forwards}
+.ptitle small{display:block;font-size:18px;opacity:.8}
+.ptitle b{font-family:"Black Han Sans";font-weight:400;font-size:clamp(56px,12vw,140px);line-height:1;text-shadow:0 6px 40px #000}
+@keyframes intro{0%{opacity:0;transform:translate(-50%,-50%) scale(1.3)}25%,65%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+.rows.fadein{animation:rows 1.6s 1.6s ease both}
+@keyframes rows{from{opacity:0;transform:scale(1.08)}}
+.pfoot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;padding:8px 12px 12px;flex-wrap:wrap}
+.seg{display:flex;background:#fff2;border-radius:10px;padding:3px}
+.seg button{min-height:38px;background:none;color:#fff;font-weight:500}
+.seg button[aria-pressed=true]{background:#fff;color:#111;font-weight:700}
+.pnote{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;opacity:.85}
+/* 영상관 */
+.theater,.movie{position:fixed;inset:0;z-index:20;display:none;background:#0b0b0b;color:#fff;overflow:hidden}
+.theater.on,.movie.on{display:flex;flex-direction:column}
+.theater .sbar,.movie .sbar{position:static;background:none;flex-wrap:wrap}
+.th-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;padding:0 16px 16px;min-height:0}
+.th-main{display:flex;flex-direction:column;min-height:0}
+.th-player{flex:1;display:grid;place-items:center;background:#000;border-radius:12px;overflow:hidden;min-height:200px}
+.th-player video,.th-player iframe{width:100%;height:100%;max-height:100%;border:0;background:#000}
+.th-info{padding:12px 4px 0}
+.th-info b{display:block;font-family:"Black Han Sans";font-weight:400;font-size:clamp(20px,3vw,28px);line-height:1.2}
+.th-info span{font-size:14px;opacity:.75}
+.th-list{list-style:none;margin:0;padding:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.th-list button{display:grid;grid-template-columns:112px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:6px;border-radius:10px;background:#ffffff10;color:#fff;text-align:left;font-weight:500;min-height:0}
+.th-list button.cur{background:var(--red)}
+.th-list .tv{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#222}
+.th-list .tv img,.th-list .tv video{width:100%;height:100%;object-fit:cover;display:block}
+.th-list small{display:block;font-size:13px;opacity:.75;font-weight:400}
+.th-list .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tog{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;min-height:44px}
+.tog input{width:20px;height:20px;accent-color:var(--red)}
+/* 추억영상 */
+.mv-stage{flex:1;min-height:180px;position:relative}
+.mv-stage canvas{position:absolute;top:0;left:16px;width:calc(100% - 32px);height:100%;object-fit:contain}
+.mv-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:50%;background:var(--red);color:#fff;font-size:30px;box-shadow:0 10px 30px #0008}
+.mv-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px 4px}
+.mv-bar{flex:1 1 200px;height:6px;border-radius:3px;background:#ffffff26;overflow:hidden}
+.mv-bar i{display:block;height:100%;width:0;background:var(--red)}
+.mv-time{font-size:14px;opacity:.8;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mv-msg{margin:0;padding:4px 16px 14px;font-size:14px;opacity:.85;min-height:1.5em}
+.mv-msg a{color:#fff;font-weight:700}
+.sel{font:inherit;font-size:16px;min-height:44px;border-radius:10px;border:0;padding:0 12px;background:#ffffff26;color:#fff}
+.sel option{color:#111}
+.rec{background:#fff;color:#111}
+.rec.on{background:var(--red);color:#fff}
+@media(max-width:760px){.th-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.th-player{aspect-ratio:16/9;flex:none}.mv-stage canvas{left:6px;width:calc(100% - 12px)}}
+@media(max-width:600px){.post{padding:16px}.ph{gap:12px}.nav{display:none}.layer .fit{inset:56px 6px 150px}.row:nth-child(3){display:none}}
+@media(prefers-reduced-motion:no-preference){.post{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
+@media(prefers-reduced-motion:reduce){.kb img,.track,.ptitle,.rows.fadein{animation:none!important}.ptitle{display:none}.row{overflow-x:auto}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="head">
+    <div>
+      <h1 id="club">__CLUB_NAME__</h1>
+      <p class="sub" id="clubSub">__CLUB_SUB__</p>
+    </div>
+    <div class="yr">
+      <button class="ghost icon" id="yPrev" aria-label="이전 해">‹</button>
+      <b id="year">2026</b>
+      <button class="ghost icon" id="yNext" aria-label="다음 해">›</button>
+    </div>
+  </div>
+  <nav class="months" id="months" aria-label="월 선택"></nav>
+</div></header>
+
+<main><div class="wrap">
+  <div class="bar">
+    <h2 id="mTitle">11월 활동</h2>
+    <div class="views">
+      <button class="dark" id="showBtn" disabled>▶ 한 장씩 넘겨보기</button>
+      <button class="dark" id="panoBtn" disabled>파노라마 전체보기</button>
+      <button class="dark" id="thBtn" disabled>영상관</button>
+      <button class="dark" id="mvBtn" disabled>추억영상 만들기</button>
+      <button class="ghost2" id="copyBtn">링크 복사</button>
+    </div>
+  </div>
+  <p class="status" id="status">불러오는 중…</p>
+  <div id="feed"></div>
+</div></main>
+
+<div class="show" id="show" role="dialog" aria-label="슬라이드쇼">
+  <div id="stage"></div>
+  <div class="scap" id="sCap"><b id="sTitle"></b><span id="sDate"></span></div>
+  <div class="prog"><i id="sProg"></i></div>
+  <div class="strip" id="sStrip"></div>
+  <button class="ghost nav l" id="sPrev" aria-label="이전 사진">‹</button>
+  <button class="ghost nav r" id="sNext" aria-label="다음 사진">›</button>
+  <div class="sbar">
+    <button class="ghost" id="sPlay">❚❚ 멈춤</button>
+    <span class="cnt" id="sCnt"></span>
+    <span class="grow"></span>
+    <button class="ghost" id="sFull">전체화면</button>
+    <button class="ghost icon" id="sClose" aria-label="닫기">✕</button>
+  </div>
+</div>
+
+<div class="pano" id="pano" role="dialog" aria-label="파노라마 전체보기">
+  <div class="rows" id="rows"></div>
+  <div class="vign"></div>
+  <div class="ptitle" id="pTitle"><small id="pSmall"></small><b id="pBig"></b></div>
+  <div class="sbar">
+    <div class="seg" role="group" aria-label="범위">
+      <button id="scM" aria-pressed="true">이 달</button>
+      <button id="scY" aria-pressed="false">올해 전체</button>
+    </div>
+    <span class="grow"></span>
+    <button class="ghost" id="pFull">전체화면</button>
+    <button class="ghost icon" id="pClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="pfoot">
+    <button class="ghost" id="pPause">❚❚ 멈춤</button>
+    <button class="ghost" id="pShow">▶ 한 장씩 보기</button>
+  </div>
+</div>
+
+<div class="theater" id="theater" role="dialog" aria-label="영상관">
+  <div class="sbar">
+    <div class="seg" role="group" aria-label="범위">
+      <button id="thM" aria-pressed="true">이 달</button>
+      <button id="thY" aria-pressed="false">올해 전체</button>
+    </div>
+    <label class="tog"><input type="checkbox" id="thAuto" checked> 다음 영상 자동 재생</label>
+    <span class="grow"></span>
+    <button class="ghost icon" id="thClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="th-body">
+    <div class="th-main">
+      <div class="th-player" id="thPlayer"></div>
+      <div class="th-info"><b id="thTitle"></b><span id="thDate"></span></div>
+    </div>
+    <ol class="th-list" id="thList"></ol>
+  </div>
+</div>
+
+<div class="movie" id="movie" role="dialog" aria-label="추억영상">
+  <div class="sbar">
+    <div class="seg" role="group" aria-label="범위">
+      <button id="mvM" aria-pressed="true">이 달</button>
+      <button id="mvY" aria-pressed="false">올해 전체</button>
+    </div>
+    <select class="sel" id="mvMusic" aria-label="배경음악"></select>
+    <input type="file" id="mvFile" accept="audio/*" hidden>
+    <span class="grow"></span>
+    <button class="ghost icon" id="mvClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="mv-stage">
+    <canvas id="mvCanvas" width="1280" height="720"></canvas>
+    <button class="mv-big" id="mvBig" aria-label="재생">▶</button>
+  </div>
+  <div class="mv-ctl">
+    <button class="ghost" id="mvPlay">▶ 재생</button>
+    <button class="ghost" id="mvRestart">처음부터</button>
+    <div class="mv-bar"><i id="mvProg"></i></div>
+    <span class="mv-time" id="mvTime">0:00 / 0:00</span>
+    <button class="rec" id="mvRec">영상 파일로 저장</button>
+  </div>
+  <p class="mv-msg" id="mvMsg"></p>
+</div>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const now = new Date();
+let year = now.getFullYear(), month = now.getMonth() + 1, posts = [], musicList = [];
+const pad = n => String(n).padStart(2, "0");
+const key = (y, m) => y + "-" + pad(m);
+const SRC = /^media\/[\w.-]+$/, YT = /^[\w-]{11}$/, GD = /^[\w-]{20,80}$/;
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function fromHash() { const h = location.hash.slice(1); if (/^\d{4}-\d{2}$/.test(h)) { year = +h.slice(0, 4); month = +h.slice(5); return true; } return false; }
+const monthPosts = () => posts.filter(p => p.month === key(year, month));
+const yearPosts = () => posts.filter(p => p.month.startsWith(year + "-"));
+function mediaOf(list) {
+  return list.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+    .flatMap(p => p.media.map(m => ({ ...m, title: p.title, date: p.date })));
+}
+function fmtDate(d) { const x = new Date(d + "T00:00"); return isNaN(x) ? d : x.getFullYear() + "년 " + (x.getMonth() + 1) + "월 " + x.getDate() + "일 (" + "일월화수목금토"[x.getDay()] + ")"; }
+const ytThumb = id => "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
+const driveThumb = id => "https://drive.google.com/thumbnail?id=" + id + "&sz=w800";
+const extThumb = md => md.kind === "youtube" ? ytThumb(md.yt) : driveThumb(md.gd);
+const extSrc = md => md.kind === "youtube" ? "https://www.youtube-nocookie.com/embed/" + md.yt + "?autoplay=1&playsinline=1&rel=0" : "https://drive.google.com/file/d/" + md.gd + "/preview";
+function extFrame(md) { const f = el("iframe"); f.src = extSrc(md); f.allow = "autoplay; encrypted-media; fullscreen; picture-in-picture"; f.allowFullscreen = true; f.title = md.title; return f; }
+function playIcon() { const p = el("span", "play"); p.append(el("i")); return p; }
+
+/* 작은 미리보기: 사진은 썸네일, 영상은 첫 장면, 유튜브는 표지 */
+function thumb(md, eager) {
+  if (md.kind === "video" && !md.poster) { const v = el("video"); v.src = md.src + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true; return v; }
+  const im = el("img"); im.alt = ""; if (!eager) im.loading = "lazy";
+  im.src = md.kind === "image" ? md.thumb : md.kind === "video" ? md.poster : extThumb(md); return im;
+}
+
+function renderMonths() {
+  $("year").textContent = year;
+  const box = $("months"); box.textContent = "";
+  for (let m = 1; m <= 12; m++) {
+    const n = posts.filter(p => p.month === key(year, m)).length;
+    const b = el("button", "m" + (n ? " has" : ""));
+    b.setAttribute("aria-current", m === month);
+    b.append(el("span", "num", m + "월"), el("small", null, n ? n + "개 활동" : "—"));
+    b.onclick = () => { month = m; go(); };
+    box.append(b);
+  }
+  box.children[month - 1].scrollIntoView({ block: "nearest", inline: "center" });
+}
+
+function renderFeed() {
+  $("mTitle").textContent = year + "년 " + month + "월 활동";
+  const feed = $("feed"); feed.textContent = "";
+  const list = monthPosts().sort((a, b) => (a.date < b.date ? 1 : -1));
+  const flat = mediaOf(list);
+  $("showBtn").disabled = !flat.length;
+  const ym = mediaOf(yearPosts());
+  $("panoBtn").disabled = !ym.length;
+  $("thBtn").disabled = !ym.some(m => m.kind !== "image");
+  $("mvBtn").disabled = !ym.some(m => m.kind === "image");
+  if (!list.length) {
+    const e = el("div", "empty"); e.append(el("b", null, "이 달의 기록이 아직 없어요"));
+    e.append(el("span", null, "위의 월 탭에서 다른 달을 눌러 보세요."));
+    feed.append(e); return;
+  }
+  for (const p of list) {
+    const card = el("article", "post");
+    const ph = el("div", "ph");
+    const d = el("div", "date"); const dd = new Date(p.date + "T00:00");
+    d.append(el("span", "num", dd.getDate()), el("small", null, "일월화수목금토"[dd.getDay()] + "요일"));
+    const pt = el("div", "pt");
+    pt.append(el("h3", null, p.title));
+    const nP = p.media.filter(x => x.kind === "image").length, nV = p.media.length - nP;
+    pt.append(el("div", "meta", fmtDate(p.date) + " · 사진 " + nP + (nV ? " · 영상 " + nV : "")));
+    ph.append(d, pt); card.append(ph);
+    if (p.note) card.append(el("p", "note", p.note));
+    if (p.media.length) {
+      const g = el("div", "grid" + (p.media.length === 1 ? " one" : ""));
+      for (const x of p.media) {
+        const t = el("button", "tile");
+        t.setAttribute("aria-label", (x.kind === "image" ? "사진" : "영상") + " 크게 보기");
+        t.append(thumb(x)); if (x.kind !== "image") t.append(playIcon());
+        const i = flat.findIndex(f => f === x || (f.src || f.yt) === (x.src || x.yt));
+        t.onclick = () => openShow(flat, Math.max(0, i), false);
+        g.append(t);
+      }
+      card.append(g);
+    }
+    feed.append(card);
+  }
+}
+
+function go() {
+  try { history.replaceState(null, "", "#" + key(year, month)); } catch (e) {}
+  renderMonths(); renderFeed();
+}
+$("yPrev").onclick = () => { year--; go(); };
+$("yNext").onclick = () => { year++; go(); };
+addEventListener("hashchange", () => { if (fromHash()) { renderMonths(); renderFeed(); } });
+$("copyBtn").onclick = () => {
+  const url = location.href;
+  const done = ok => { $("copyBtn").textContent = ok ? "복사됐어요 ✓" : "주소창 링크를 복사하세요"; setTimeout(() => $("copyBtn").textContent = "링크 복사", 2000); };
+  try { navigator.clipboard.writeText(url).then(() => done(true), () => done(false)); } catch (e) { done(false); }
+};
+
+/* 슬라이드쇼: 한 장씩 넘겨보기 */
+const INT = 5000;
+let sList = [], sIdx = 0, sPlaying = false, sTimer = null, sx = null;
+const rnd = (a, b) => a + Math.random() * (b - a);
+function openShow(list, i, play) {
+  if (!list.length) return;
+  sList = list; sIdx = i; sPlaying = play;
+  $("pano").classList.add("paused");
+  $("show").classList.add("on");
+  const st = $("sStrip"); st.textContent = "";
+  list.forEach((md, k) => { const b = el("button"); b.setAttribute("aria-label", (k + 1) + "번째"); b.append(thumb(md)); b.onclick = () => { sIdx = k; showSlide(); }; st.append(b); });
+  $("sPrev").hidden = $("sNext").hidden = list.length < 2;
+  showSlide(); $("sClose").focus();
+}
+function schedule() {
+  clearTimeout(sTimer);
+  const p = $("sProg"); p.style.transition = "none"; p.style.width = "0";
+  $("sPlay").textContent = sPlaying ? "❚❚ 멈춤" : "▶ 자동 재생";
+  if (!sPlaying || sList[sIdx].kind !== "image") return;
+  void p.offsetWidth; p.style.transition = "width " + INT + "ms linear"; p.style.width = "100%";
+  sTimer = setTimeout(() => step(1), INT);
+}
+function showSlide() {
+  const md = sList[sIdx], stage = $("stage");
+  const layer = el("div", "layer"), fit = el("div", "fit");
+  if (md.kind === "video") {
+    const v = el("video"); v.src = md.src; v.controls = true; v.playsInline = true; v.autoplay = true; if (md.poster) v.poster = md.poster;
+    v.onended = () => { if (sPlaying) step(1); };
+    v.ontimeupdate = () => { if (v.duration) { const p = $("sProg"); p.style.transition = "none"; p.style.width = (v.currentTime / v.duration * 100) + "%"; } };
+    fit.append(v);
+  } else if (md.kind !== "image") {
+    const bl = el("div", "blur"); bl.style.backgroundImage = 'url("' + extThumb(md) + '")'; layer.append(bl);
+    const w = el("div", "yt"); w.append(extFrame(md)); fit.append(w);
+  } else {
+    const bl = el("div", "blur"); bl.style.backgroundImage = 'url("' + md.thumb + '")'; layer.append(bl);
+    const im = el("img"); im.src = md.src; im.alt = md.title; fit.append(im);
+    fit.classList.add("kb");
+    const s0 = rnd(1, 1.06), s1 = rnd(1.1, 1.18), f = Math.random() < .5;
+    const vars = { "--s0": f ? s1 : s0, "--s1": f ? s0 : s1, "--x0": rnd(-2.5, 2.5) + "%", "--y0": rnd(-2, 2) + "%", "--x1": rnd(-2.5, 2.5) + "%", "--y1": rnd(-2, 2) + "%", "--d": (INT + 1200) + "ms" };
+    for (const k in vars) fit.style.setProperty(k, vars[k]);
+    const nx = sList[(sIdx + 1) % sList.length]; if (nx.kind === "image") { const pre = new Image(); pre.src = nx.src; }
+  }
+  layer.append(fit); stage.append(layer);
+  requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add("in")));
+  [...stage.children].slice(0, -1).forEach(o => { o.classList.remove("in"); o.querySelectorAll("video").forEach(v => v.pause()); o.querySelectorAll("iframe").forEach(f => f.remove()); setTimeout(() => o.remove(), 1100); });
+  $("sTitle").textContent = md.title; $("sDate").textContent = fmtDate(md.date);
+  const cap = $("sCap"); cap.classList.remove("pop"); void cap.offsetWidth; cap.classList.add("pop");
+  $("sCnt").textContent = (sIdx + 1) + " / " + sList.length;
+  [...$("sStrip").children].forEach((b, k) => b.classList.toggle("cur", k === sIdx));
+  const cur = $("sStrip").children[sIdx]; if (cur) cur.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  schedule();
+}
+function step(d) { sIdx = (sIdx + d + sList.length) % sList.length; showSlide(); }
+function closeShow() {
+  clearTimeout(sTimer); $("show").classList.remove("on"); $("stage").textContent = "";
+  setPaused(false);
+  if (document.fullscreenElement && !$("pano").classList.contains("on")) document.exitFullscreen().catch(() => {});
+}
+function toggleFull() {
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+}
+$("sPrev").onclick = () => step(-1); $("sNext").onclick = () => step(1);
+$("sPlay").onclick = () => { sPlaying = !sPlaying; const v = $("stage").querySelector(".layer:last-child video"); if (v && sPlaying && v.paused) v.play().catch(() => {}); schedule(); };
+$("sClose").onclick = closeShow; $("sFull").onclick = toggleFull;
+$("show").addEventListener("pointerdown", e => { sx = e.target.closest("button,video,iframe,.strip") ? null : e.clientX; });
+$("show").addEventListener("pointerup", e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 50 && sList.length > 1) step(dx < 0 ? 1 : -1); });
+
+/* 파노라마(주마등) 전체보기 */
+let pScope = "month", pList = [];
+function setPaused(v) { $("pano").classList.toggle("paused", v); $("pPause").textContent = v ? "▶ 다시 흐르기" : "❚❚ 멈춤"; }
+function openPano() {
+  pScope = mediaOf(monthPosts()).length ? "month" : "year";
+  $("pano").classList.add("on"); setPaused(false); buildPano(); $("pClose").focus();
+}
+function buildPano() {
+  pList = mediaOf(pScope === "month" ? monthPosts() : yearPosts());
+  $("scM").setAttribute("aria-pressed", pScope === "month"); $("scY").setAttribute("aria-pressed", pScope === "year");
+  $("pSmall").textContent = $("club").textContent + (pScope === "month" ? " · " + year + "년" : " · 한 해의 기록");
+  $("pBig").textContent = pScope === "month" ? month + "월" : year;
+  const t = $("pTitle"); t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
+  const rows = $("rows"); rows.textContent = "";
+  rows.classList.remove("fadein"); void rows.offsetWidth; rows.classList.add("fadein");
+  $("pShow").disabled = !pList.length;
+  if (!pList.length) { rows.append(el("div", "pnote", pScope === "month" ? "이 달에는 사진이 없어요. ‘올해 전체’를 눌러 보세요." : "올해 올라온 사진이 없어요.")); return; }
+  let n = pList.length < 6 ? 1 : pList.length < 14 ? 2 : 3;
+  if (innerWidth < 600) n = Math.min(n, 2);
+  for (let r = 0; r < n; r++) {
+    const items = pList.map((m, i) => i).filter(i => i % n === r);
+    let seq = items.slice(); while (seq.length < 8) seq = seq.concat(items);
+    const row = el("div", "row" + (r % 2 ? " rev" : ""));
+    const track = el("div", "track"); track.style.setProperty("--dur", (seq.length * (innerWidth < 600 ? 3.2 : 4.5) + r * 3) + "s");
+    for (const i of seq.concat(seq)) {
+      const md = pList[i], c = el("button", "card");
+      c.setAttribute("aria-label", md.title + " 크게 보기");
+      if (md.kind === "video" && !md.poster) { const v = el("video"); v.src = md.src; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.preload = "metadata"; c.append(v); }
+      else { c.append(thumb(md, true)); if (md.kind !== "image") c.append(playIcon()); }
+      const d = new Date(md.date + "T00:00");
+      c.append(el("span", null, (d.getMonth() + 1) + "." + d.getDate() + " · " + md.title));
+      c.onclick = () => openShow(pList, i, false);
+      track.append(c);
+    }
+    row.append(track); rows.append(row);
+  }
+}
+function closePano() {
+  $("pano").classList.remove("on"); $("rows").textContent = "";
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+$("showBtn").onclick = () => openShow(mediaOf(monthPosts()), 0, true);
+$("panoBtn").onclick = openPano;
+$("scM").onclick = () => { pScope = "month"; buildPano(); };
+$("scY").onclick = () => { pScope = "year"; buildPano(); };
+$("pPause").onclick = () => setPaused(!$("pano").classList.contains("paused"));
+$("pShow").onclick = () => openShow(pList, 0, true);
+$("pClose").onclick = closePano; $("pFull").onclick = toggleFull;
+addEventListener("keydown", e => {
+  if (!$("show").classList.contains("on")) {
+    if ($("theater").classList.contains("on")) { if (e.key === "Escape") closeTheater(); return; }
+    if ($("movie").classList.contains("on")) { if (e.key === "Escape") $("mvClose").click(); else if (e.key === " " && !e.target.closest("button,select")) { e.preventDefault(); $("mvPlay").click(); } return; }
+  }
+  if ($("show").classList.contains("on")) {
+    if (e.key === "Escape") closeShow();
+    else if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "ArrowRight") step(1);
+    else if (e.key === " " && !e.target.closest("button")) { e.preventDefault(); $("sPlay").click(); }
+    return;
+  }
+  if ($("pano").classList.contains("on")) {
+    if (e.key === "Escape") closePano();
+    else if (e.key === " " && !e.target.closest("button")) { e.preventDefault(); $("pPause").click(); }
+    return;
+  }
+  if (document.activeElement === document.body || document.activeElement.classList.contains("m")) {
+    if (e.key === "ArrowLeft" && month > 1) { month--; go(); }
+    if (e.key === "ArrowRight" && month < 12) { month++; go(); }
+  }
+});
+
+
+/* ───────── 영상관: 영상·유튜브 연속재생 ───────── */
+let thScope = "month", thList = [], thIdx = 0, ytApi = null, ytPlayer = null;
+const videosOf = list => mediaOf(list).filter(m => m.kind !== "image");
+function loadYtApi() {
+  if (ytApi) return ytApi;
+  ytApi = new Promise(res => {
+    if (window.YT && YT.Player) return res(true);
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(true); };
+    const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; s.onerror = () => res(false);
+    document.head.append(s); setTimeout(() => res(!!(window.YT && YT.Player)), 6000);
+  });
+  return ytApi;
+}
+function openTheater() {
+  thScope = videosOf(monthPosts()).length ? "month" : "year";
+  $("theater").classList.add("on"); buildTheater(); $("thClose").focus();
+}
+function buildTheater() {
+  thList = videosOf(thScope === "month" ? monthPosts() : yearPosts());
+  $("thM").setAttribute("aria-pressed", thScope === "month"); $("thY").setAttribute("aria-pressed", thScope === "year");
+  const ol = $("thList"); ol.textContent = "";
+  thList.forEach((md, k) => {
+    const li = el("li"), b = el("button"), tv = el("span", "tv"), tx = el("span");
+    tv.append(thumb(md)); tv.append(playIcon());
+    tx.append(el("span", "t", md.title), el("small", null, fmtDate(md.date) + (md.kind === "youtube" ? " · 유튜브" : md.kind === "drive" ? " · 구글 드라이브" : "")));
+    b.append(tv, tx); b.onclick = () => playTheater(k); li.append(b); ol.append(li);
+  });
+  if (!thList.length) {
+    stopTheater();
+    $("thPlayer").append(el("p", "pnote", thScope === "month" ? "이 달에는 영상이 없어요. ‘올해 전체’를 눌러 보세요." : "올해 올라온 영상이 없어요."));
+    $("thTitle").textContent = ""; $("thDate").textContent = ""; return;
+  }
+  playTheater(0);
+}
+function stopTheater() {
+  if (ytPlayer) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
+  $("thPlayer").textContent = "";
+}
+async function playTheater(k) {
+  thIdx = k; stopTheater();
+  const md = thList[k], box = $("thPlayer");
+  $("thTitle").textContent = md.title; $("thDate").textContent = fmtDate(md.date) + " · " + (k + 1) + " / " + thList.length;
+  [...$("thList").querySelectorAll("button")].forEach((b, i) => b.classList.toggle("cur", i === k));
+  const cur = $("thList").querySelectorAll("button")[k]; if (cur) cur.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  const next = () => { if ($("thAuto").checked && $("theater").classList.contains("on") && thIdx === k && k + 1 < thList.length) playTheater(k + 1); };
+  if (md.kind === "video") {
+    const v = el("video"); v.src = md.src; v.controls = true; v.autoplay = true; v.playsInline = true; v.onended = next; if (md.poster) v.poster = md.poster;
+    box.append(v); v.play().catch(() => {});
+  } else if (md.kind === "drive") {
+    box.append(extFrame(md));
+    if (k + 1 < thList.length) $("thDate").textContent += " · 구글 드라이브 영상은 끝나면 목록에서 다음 영상을 눌러 주세요";
+  } else {
+    const holder = el("div"); holder.style.cssText = "width:100%;height:100%"; box.append(holder);
+    const ok = await loadYtApi();
+    if (thIdx !== k || !$("theater").classList.contains("on")) return;
+    if (ok) {
+      ytPlayer = new YT.Player(holder, { videoId: md.yt, width: "100%", height: "100%", host: "https://www.youtube-nocookie.com",
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0 }, events: { onStateChange: e => { if (e.data === 0) next(); } } });
+    } else {
+      holder.replaceWith(extFrame(md));
+    }
+  }
+}
+function closeTheater() { $("theater").classList.remove("on"); stopTheater(); $("thList").textContent = ""; }
+$("thM").onclick = () => { thScope = "month"; buildTheater(); };
+$("thY").onclick = () => { thScope = "year"; buildTheater(); };
+$("thClose").onclick = closeTheater;
+
+/* ───────── 추억영상: 사진 + 음악으로 만드는 영상 ───────── */
+const W = 1280, H = 720, PH = 3.2, FADE = 0.8, MAXPH = 60;
+const cv = $("mvCanvas"), cx = cv.getContext("2d");
+let mvScope = "month", mvSegs = [], mvTotal = 0, mvT = 0, mvRun = null, mvAudio = null, mvRec = null, userMusic = null, mvReady = null;
+const FONT = '"Black Han Sans","Noto Sans KR",sans-serif', BODY = '"Noto Sans KR",sans-serif';
+const fmtT = s => Math.floor(s / 60) + ":" + pad(Math.floor(s % 60));
+const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+
+function fillMusic() {
+  const s = $("mvMusic"), keep = s.value; s.textContent = "";
+  const add = (v, t) => { const o = el("option", null, t); o.value = v; s.append(o); };
+  add("gen", "배경음악: 기본 신나는 음악");
+  musicList.forEach((m, i) => add("m" + i, "배경음악: " + m.name));
+  if (userMusic) add("user", "배경음악: " + userMusic.name);
+  add("file", "내 음악 파일 고르기…"); add("none", "음악 없음");
+  s.value = [...s.options].some(o => o.value === keep) && keep !== "file" ? keep : (musicList.length ? "m0" : "gen");
+}
+$("mvMusic").onchange = () => { if ($("mvMusic").value === "file") $("mvFile").click(); else resetMovie(); };
+$("mvFile").onchange = e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (f) { if (userMusic) URL.revokeObjectURL(userMusic.url); userMusic = { name: f.name.replace(/\.[^.]+$/, ""), url: URL.createObjectURL(f) }; fillMusic(); $("mvMusic").value = "user"; }
+  else fillMusic();
+  resetMovie();
+};
+
+function openMovie() {
+  mvScope = mediaOf(monthPosts()).some(m => m.kind === "image") ? "month" : "year";
+  fillMusic(); $("movie").classList.add("on"); buildMovie(); $("mvClose").focus();
+}
+async function buildMovie() {
+  stopMovie();
+  $("mvM").setAttribute("aria-pressed", mvScope === "month"); $("mvY").setAttribute("aria-pressed", mvScope === "year");
+  let ph = mediaOf(mvScope === "month" ? monthPosts() : yearPosts()).filter(m => m.kind === "image" && !/\.gif$/i.test(m.src));
+  const nAll = ph.length, nAct = new Set(ph.map(m => m.date + m.title)).size;
+  if (ph.length > MAXPH) ph = Array.from({ length: MAXPH }, (_, i) => ph[Math.floor(i * nAll / MAXPH)]);
+  const club = $("club").textContent;
+  const head = mvScope === "month" ? year + "년 " + month + "월" : year + "년 한 해";
+  mvSegs = [{ type: "intro", dur: 3.6, club, head }];
+  let prev = "";
+  for (const m of ph) {
+    const k = m.date + m.title;
+    mvSegs.push({ type: "photo", dur: PH, m, chapter: k !== prev, s0: 1.02 + Math.random() * .05, s1: 1.12 + Math.random() * .06, zoomOut: Math.random() < .4,
+      px: Math.random() * 2 - 1, py: Math.random() * 2 - 1 });
+    prev = k;
+  }
+  mvSegs.push({ type: "outro", dur: 4.4, club, line: nAct + "개의 활동 · 사진 " + nAll + "장" });
+  let t = 0; for (const s of mvSegs) { s.start = t; t += s.dur; } mvTotal = t;
+  $("mvRec").disabled = $("mvPlay").disabled = $("mvBig").disabled = !ph.length;
+  $("mvBig").hidden = false;
+  if (!ph.length) { mvReady = null; drawCard("사진이 없어요", mvScope === "month" ? "‘올해 전체’를 눌러 보세요" : ""); $("mvMsg").textContent = ""; $("mvTime").textContent = "0:00 / 0:00"; return; }
+  $("mvMsg").textContent = "사진 불러오는 중…";
+  const token = mvSegs;
+  mvReady = (async () => {
+    try { await document.fonts.load('80px "Black Han Sans"'); await document.fonts.load('30px "Noto Sans KR"'); } catch (e) {}
+    let n = 0;
+    await Promise.all(mvSegs.filter(s => s.type === "photo").map(s => new Promise(res => {
+      const im = new Image(); im.onload = () => { s.img = im; n++; if (token === mvSegs) $("mvMsg").textContent = "사진 불러오는 중… " + n + " / " + ph.length; res(); };
+      im.onerror = () => res(); im.src = s.m.src;
+    })));
+  })();
+  await mvReady;
+  if (token !== mvSegs) return;
+  mvT = 0; drawAt(0); updTime();
+  $("mvMsg").textContent = "▶를 누르면 재생돼요. ‘영상 파일로 저장’을 누르면 처음부터 끝까지 재생하면서 파일로 만들어요" + (nAll > MAXPH ? " (사진이 많아 " + MAXPH + "장을 골라 썼어요)" : "") + ".";
+}
+
+/* 그리기 */
+function cover(img, s, px, py) {
+  const r = Math.max(W / img.width, H / img.height) * s, w = img.width * r, h = img.height * r;
+  cx.drawImage(img, (W - w) / 2 + px * (w - W) / 2, (H - h) / 2 + py * (h - H) / 2, w, h);
+}
+function drawPhoto(sg, t) {
+  const img = sg.img; if (!img) { cx.fillStyle = "#111"; cx.fillRect(0, 0, W, H); return; }
+  const u = Math.min(1, Math.max(0, (t - sg.start) / (sg.dur + FADE)));
+  const s = sg.zoomOut ? sg.s1 + (sg.s0 - sg.s1) * u : sg.s0 + (sg.s1 - sg.s0) * u;
+  if (img.width / img.height < 1.25) {
+    cx.save(); cx.filter = "blur(28px) brightness(.5)"; cover(img, 1.25, 0, 0); cx.restore();
+    cx.fillStyle = "rgba(0,0,0,.25)"; cx.fillRect(0, 0, W, H);
+    const r = Math.min(W / img.width, H / img.height) * (0.94 + (s - 1) * .5), w = img.width * r, h = img.height * r;
+    cx.save(); cx.shadowColor = "rgba(0,0,0,.6)"; cx.shadowBlur = 40;
+    cx.drawImage(img, (W - w) / 2 + sg.px * 12 * u, (H - h) / 2 + sg.py * 8 * u, w, h); cx.restore();
+  } else cover(img, s, sg.px * (u - .5), sg.py * (u - .5));
+  const g = cx.createLinearGradient(0, H * .62, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.6)");
+  cx.fillStyle = g; cx.fillRect(0, H * .62, W, H * .38);
+  const d = new Date(sg.m.date + "T00:00"), lt = t - sg.start;
+  if (sg.chapter && lt < PH) {
+    const a = ease(lt / .6) * (lt > PH - .5 ? Math.max(0, (PH - lt) / .5) : 1), x = 60 - (1 - ease(lt / .6)) * 80;
+    cx.save(); cx.globalAlpha = a;
+    cx.fillStyle = "#e8361e"; cx.fillRect(x, H - 196, 10, 128);
+    cx.fillStyle = "#fff"; cx.shadowColor = "rgba(0,0,0,.5)"; cx.shadowBlur = 12;
+    cx.font = "500 28px " + BODY; cx.fillText((d.getMonth() + 1) + "월 " + d.getDate() + "일 " + "일월화수목금토"[d.getDay()] + "요일", x + 30, H - 156);
+    cx.font = "64px " + FONT; fitText(sg.m.title, x + 30, H - 86, W - x - 120);
+    cx.restore();
+  } else {
+    cx.save(); cx.globalAlpha = .9; cx.fillStyle = "#fff"; cx.shadowColor = "rgba(0,0,0,.6)"; cx.shadowBlur = 8;
+    cx.font = "500 24px " + BODY; fitText((d.getMonth() + 1) + "." + d.getDate() + "  " + sg.m.title, 48, H - 44, W - 96); cx.restore();
+  }
+}
+function fitText(s, x, y, max) {
+  let txt = s; while (cx.measureText(txt).width > max && txt.length > 2) txt = txt.slice(0, -2) + "…";
+  cx.fillText(txt, x, y);
+}
+function drawCard(big, small, sub, lt, bg) {
+  cx.fillStyle = bg || "#e8361e"; cx.fillRect(0, 0, W, H);
+  cx.save(); cx.fillStyle = "rgba(255,255,255,.08)";
+  for (let i = 0; i < 6; i++) { cx.beginPath(); cx.arc(W * (.1 + i * .17), H * (i % 2 ? .15 : .9), 90 + i * 30 + (lt || 0) * 8, 0, 7); cx.fill(); }
+  cx.restore();
+  const a = ease((lt == null ? 1 : lt) / .9), sc = 1.15 - .15 * a;
+  cx.save(); cx.globalAlpha = Math.max(.001, a); cx.translate(W / 2, H / 2); cx.scale(sc, sc);
+  cx.fillStyle = "#fff"; cx.textAlign = "center";
+  if (small) { cx.font = "500 32px " + BODY; cx.fillText(small, 0, -84); }
+  cx.font = "120px " + FONT; cx.fillText(big, 0, 40);
+  if (sub) { cx.font = "500 28px " + BODY; cx.globalAlpha *= .85; cx.fillText(sub, 0, 112); }
+  cx.restore();
+}
+function drawSeg(sg, t) {
+  const lt = t - sg.start;
+  if (sg.type === "intro") drawCard(sg.head, sg.club, "우리들의 기록", lt);
+  else if (sg.type === "outro") drawCard("함께해서 즐거웠어요", sg.club, sg.line, lt, "#151515");
+  else drawPhoto(sg, t);
+}
+function drawAt(t) {
+  let i = mvSegs.findIndex(s => t < s.start + s.dur); if (i < 0) i = mvSegs.length - 1;
+  cx.globalAlpha = 1;
+  if (i > 0) drawSeg(mvSegs[i - 1], t);
+  cx.globalAlpha = i > 0 ? Math.min(1, (t - mvSegs[i].start) / FADE) : 1;
+  drawSeg(mvSegs[i], t); cx.globalAlpha = 1;
+  if (t > mvTotal - 1.2) { cx.fillStyle = "rgba(0,0,0," + Math.min(1, (t - (mvTotal - 1.2)) / 1.2) + ")"; cx.fillRect(0, 0, W, H); }
+  if (mvSegs[i].type === "photo") { cx.save(); cx.font = "500 20px " + BODY; cx.fillStyle = "rgba(255,255,255,.75)"; cx.textAlign = "right"; cx.fillText($("club").textContent, W - 36, 48); cx.restore(); }
+}
+function updTime() { $("mvTime").textContent = fmtT(mvT) + " / " + fmtT(mvTotal); $("mvProg").style.width = (mvT / mvTotal * 100) + "%"; }
+
+/* 음악: 기본 음악은 브라우저가 직접 연주(저작권 걱정 없음) */
+function synth(ac, out, dur) {
+  const bpm = 112, beat = 60 / bpm, t0 = ac.currentTime + .05;
+  const chords = [[261.63, 329.63, 392], [196, 246.94, 293.66], [220, 261.63, 329.63], [174.61, 220, 261.63]];
+  const noise = ac.createBuffer(1, ac.sampleRate * .3, ac.sampleRate), nd = noise.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const env = (g, t, peak, a, d) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); };
+  const tone = (type, f, t, peak, a, d, dest) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; env(g, t, peak, a, d); o.connect(g).connect(dest || out); o.start(t); o.stop(t + a + d + .05); return o; };
+  const hit = (t, peak, d, ftype, f) => { const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = noise; fl.type = ftype; fl.frequency.value = f; env(g, t, peak, .002, d); s.connect(fl).connect(g).connect(out); s.start(t); s.stop(t + d + .05); };
+  const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; lp.connect(out);
+  let n = 0;
+  const total = Math.ceil(dur / beat);
+  const tick = () => {
+    while (n < total && t0 + n * beat < ac.currentTime + 0.6) {
+      const t = t0 + n * beat, bar = Math.floor(n / 4), b = n % 4, ch = chords[bar % 4], drums = bar >= 2 && n < total - 8;
+      if (b === 0) ch.forEach(f => tone("sawtooth", f, t, .035, .25, beat * 3.6, lp));
+      if (drums) {
+        const k = ac.createOscillator(), kg = ac.createGain(); k.frequency.setValueAtTime(150, t); k.frequency.exponentialRampToValueAtTime(45, t + .14); env(kg, t, .7, .003, .2); k.connect(kg).connect(out); k.start(t); k.stop(t + .3);
+        if (b % 2) hit(t, .25, .14, "bandpass", 1800);
+        hit(t + beat / 2, .08, .05, "highpass", 7000);
+      }
+      if (bar >= 1) [0, .5].forEach(o => tone("triangle", ch[0] / 2, t + o * beat, .22, .01, beat * .4));
+      if (bar >= 4 && n < total - 4) [0, .5].forEach((o, j) => tone("triangle", ch[(b * 2 + j) % 3] * 2, t + o * beat, .06, .01, beat * .35));
+      n++;
+    }
+  };
+  tick(); const iv = setInterval(tick, 100);
+  return () => clearInterval(iv);
+}
+async function startAudio() {
+  const v = $("mvMusic").value;
+  if (v === "none") return null;
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  const ac = new AC(); await ac.resume().catch(() => {});
+  const master = ac.createGain(), dest = ac.createMediaStreamDestination ? ac.createMediaStreamDestination() : null;
+  master.connect(ac.destination); if (dest) master.connect(dest);
+  const st = { ac, master, dest, stop: null, el: null };
+  const left = mvTotal - mvT;
+  master.gain.setValueAtTime(.0001, ac.currentTime); master.gain.exponentialRampToValueAtTime(.9, ac.currentTime + .8);
+  master.gain.setValueAtTime(.9, ac.currentTime + Math.max(.9, left - 2.5)); master.gain.linearRampToValueAtTime(0, ac.currentTime + left);
+  if (v === "gen") st.stop = synth(ac, master, left);
+  else {
+    const src = v === "user" ? userMusic && userMusic.url : musicList[+v.slice(1)] && musicList[+v.slice(1)].src;
+    if (src) {
+      const a = new Audio(src); a.loop = true; a.currentTime = mvT; st.el = a;
+      ac.createMediaElementSource(a).connect(master); await a.play().catch(() => {});
+    }
+  }
+  return st;
+}
+function stopAudio() {
+  if (!mvAudio) return;
+  if (mvAudio.stop) mvAudio.stop();
+  if (mvAudio.el) mvAudio.el.pause();
+  mvAudio.ac.close().catch(() => {}); mvAudio = null;
+}
+
+/* 재생 / 저장 */
+async function playMovie(record) {
+  if (mvRun || !mvSegs.length) return;
+  await mvReady;
+  if (record) mvT = 0;
+  if (mvT >= mvTotal - .05) mvT = 0;
+  $("mvBig").hidden = true; $("mvPlay").textContent = "❚❚ 멈춤";
+  mvAudio = await startAudio();
+  if (record) {
+    const types = ['video/mp4;codecs="avc1.42E01E,mp4a.40.2"', 'video/mp4;codecs="avc1,mp4a.40.2"', "video/mp4;codecs=avc1,mp4a", "video/mp4;codecs=avc1,opus", "video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+    const mime = window.MediaRecorder && types.find(t => MediaRecorder.isTypeSupported(t));
+    if (!mime || !cv.captureStream) { $("mvMsg").textContent = "이 브라우저는 영상 저장을 지원하지 않아요. 컴퓨터의 크롬이나 엣지에서 열어 주세요."; stopMovie(); return; }
+    const tracks = [...cv.captureStream(30).getVideoTracks()];
+    if (mvAudio && mvAudio.dest) tracks.push(...mvAudio.dest.stream.getAudioTracks());
+    const chunks = [], rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: 6e6 });
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      const ext = mime.includes("mp4") ? "mp4" : "webm", blob = new Blob(chunks, { type: mime.split(";")[0] });
+      const url = URL.createObjectURL(blob), name = ($("club").textContent + " " + (mvScope === "month" ? year + "-" + pad(month) : year) + " 추억영상." + ext).replace(/[\\/:*?"<>|]/g, "");
+      const a = el("a", null, "다시 받기"); a.href = url; a.download = name;
+      $("mvMsg").textContent = "저장 완료! " + name + " (" + (blob.size / 1048576).toFixed(1) + "MB) ";
+      $("mvMsg").append(a);
+      if (ext === "webm") $("mvMsg").append(document.createTextNode(" · 이 브라우저는 WebM으로 저장돼요. 카톡 공유가 안 되면 크롬 최신 버전이나 사파리에서 저장해 보세요."));
+      const dl = el("a"); dl.href = url; dl.download = name; dl.style.display = "none"; document.body.append(dl); dl.click(); setTimeout(() => dl.remove(), 1000);
+    };
+    rec.start(1000); mvRec = rec;
+    $("mvRec").classList.add("on"); $("mvRec").textContent = "■ 저장 중지";
+    $("mvRestart").disabled = $("mvPlay").disabled = true;
+    $("mvMsg").textContent = "영상을 만드는 중이에요. 끝날 때까지 이 화면을 띄워 두세요(다른 탭으로 가면 멈춰요).";
+  }
+  const base = performance.now() - mvT * 1000;
+  const loop = now => {
+    mvT = Math.min(mvTotal, (now - base) / 1000);
+    drawAt(mvT); updTime();
+    if (mvT >= mvTotal) { finishMovie(true); return; }
+    mvRun = requestAnimationFrame(loop);
+  };
+  mvRun = requestAnimationFrame(loop);
+}
+function finishMovie(ended) {
+  if (mvRun) cancelAnimationFrame(mvRun); mvRun = null;
+  stopAudio();
+  if (mvRec) { const r = mvRec; mvRec = null; if (r.state !== "inactive") r.stop(); if (!ended) $("mvMsg").textContent = "저장을 멈췄어요."; }
+  $("mvRec").classList.remove("on"); $("mvRec").textContent = "영상 파일로 저장";
+  $("mvRestart").disabled = $("mvPlay").disabled = false;
+  $("mvPlay").textContent = "▶ 재생"; $("mvBig").hidden = false;
+  if (ended) mvT = 0;
+}
+function stopMovie() { if (mvRec) mvRec.onstop = null; finishMovie(false); }
+function resetMovie() { stopMovie(); mvT = 0; if (mvSegs.length && mvReady) mvReady.then(() => { drawAt(0); updTime(); }); }
+$("mvPlay").onclick = $("mvBig").onclick = () => { if (mvRun) finishMovie(false); else playMovie(false); };
+$("mvRestart").onclick = () => { resetMovie(); playMovie(false); };
+$("mvRec").onclick = () => { if (mvRec) { stopMovie(); $("mvMsg").textContent = "저장을 취소했어요."; } else { resetMovie(); playMovie(true); } };
+$("mvM").onclick = () => { mvScope = "month"; buildMovie(); };
+$("mvY").onclick = () => { mvScope = "year"; buildMovie(); };
+$("mvClose").onclick = () => { stopMovie(); $("movie").classList.remove("on"); };
+document.addEventListener("visibilitychange", () => { if (document.hidden && mvRun && !mvRec) finishMovie(false); });
+$("thBtn").onclick = openTheater;
+$("mvBtn").onclick = openMovie;
+
+/* 데이터 불러오기: albums.json (GitHub가 사진을 올릴 때마다 자동으로 만들어 줌) */
+const hadHash = fromHash();
+go();
+fetch("albums.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw 0; return r.json(); }).then(data => {
+  musicList = (Array.isArray(data.music) ? data.music : []).filter(m => m && /^music\/[\w.-]+$/.test(m.src)).map(m => ({ name: String(m.name || "음악"), src: m.src }));
+  posts = (Array.isArray(data.albums) ? data.albums : []).filter(a => a && /^\d{4}-\d{2}-\d{2}$/.test(a.date)).map((a, i) => ({
+    id: "a" + i, date: a.date, month: a.date.slice(0, 7), title: String(a.title || "활동"), note: String(a.note || ""),
+    media: (Array.isArray(a.media) ? a.media : []).filter(m => m && (m.kind === "youtube" ? YT.test(m.yt) : m.kind === "drive" ? GD.test(m.gd) : SRC.test(m.src) && (m.kind === "video" ? (!m.poster || SRC.test(m.poster)) : SRC.test(m.thumb))))
+  }));
+  if (!hadHash && posts.length && !monthPosts().length) {
+    const last = posts.map(p => p.month).sort().pop();
+    year = +last.slice(0, 4); month = +last.slice(5);
+  }
+  const nMedia = posts.reduce((s, p) => s + p.media.length, 0);
+  $("status").textContent = posts.length ? "총 " + posts.length + "개 활동 · 사진·영상 " + nMedia + "개 · 사진을 누르면 크게 볼 수 있어요" : "아직 올라온 기록이 없어요.";
+  go();
+}).catch(() => { $("status").textContent = "기록을 불러오지 못했어요. 잠시 후 새로고침해 주세요."; });
+}
+</script>
+</body>
+</html>
